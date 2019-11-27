@@ -3,13 +3,13 @@ GraphQL with React
 
 ## REST
 
-URL       | Method | Operation
---------------------------------------
-/posts    | POST   | Create a new post
-/posts    | GET    | Fetch all posts
-/posts/14 | GET    | Fetch post 14
-/posts/15 | PUT    | Update post 15
-/posts/18 | DELETE | Delete post 18
+| URL       | Method | Operation         |
+| ----------|--------|-------------------|
+| /posts    | POST   | Create a new post |
+| /posts    | GET    | Fetch all posts   |
+| /posts/14 | GET    | Fetch post 14     |
+| /posts/15 | PUT    | Update post 15    |
+| /posts/18 | DELETE | Delete post 18    |
 
 Associations:
 
