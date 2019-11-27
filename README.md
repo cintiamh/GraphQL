@@ -304,3 +304,225 @@ const UserType = new GraphQLObjectType({
 ```
 
 in the `UserType`, now you can use resolve to get the values for company. `parentValue` contains data from the User requesting company.
+
+It's useful to think about this as we're querying for references to objects in our graph through the `resolve` function.
+
+### Multiple RootQuery entry points
+
+Now we want to be able to query for companies.
+
+schema.js
+```javascript
+const RootQuery = new GraphQLObjectType({
+    name: 'RootQueryType',
+    fields: {
+        user: {...},
+        company: {
+            type: CompanyType,
+            args: { id: { type: GraphQLString } },
+            resolve(parentValue, args) {
+                return axios
+                  .get(
+                    `http://localhost:3000/companies/${args.id}`
+                  )
+                  .then(resp => resp.data);
+            }
+        }
+    }
+});
+```
+
+Now we can query in GraphiQL:
+```graphql
+{
+  company(id: "1") {
+    name
+  }
+}
+```
+
+### Birectional relations
+
+schema.js
+```javascript
+const CompanyType = new GraphQLObjectType({
+  name: "Company",
+  fields: () => ({
+    id: { type: GraphQLString },
+    name: { type: GraphQLString },
+    description: { type: GraphQLString },
+    users: {
+        type: new GraphQLList(UserType),
+        resolve(parentValue, args) {
+            return axios
+                .get(`http://localhost:3000/companies/${parentValue.id}/users`)
+                .then(resp => resp.data);
+        }
+    }
+  })
+});
+```
+
+We're using GraphQLList to get a list of Users.
+
+Note that fields are now in a closure to avoid problems with type reference (Circular Reference).
+
+### Query fragments
+
+Naming the query:
+```graphql
+query findCompany {
+  company(id: "1") {
+    id
+    name
+    description
+  }
+}
+```
+
+Multiple instances (you need to name each query)
+```graphql
+{
+  apple: company(id: "1") {
+    id
+    name
+    description
+  }
+  google: company(id: "2") {
+    id
+    name
+    description
+  }
+}
+```
+
+Query fragments (most common when querying in FE)
+```graphql
+{
+  apple: company(id: "1") {
+    ...companyDetails
+  }
+  google: company(id: "2") {
+    ...companyDetails
+  }
+}
+
+fragment companyDetails on Company {
+  id
+  name
+  description
+}
+```
+
+### Mutations
+
+Change the data in some fashion (UPDATE, CREATE, DELETE)
+
+schema.js
+```javascript
+const mutation = new GraphQLObjectType({
+  name: "Mutation",
+  fields: {
+    addUser: {
+      type: UserType,
+      args: {
+        firstName: { type: new GraphQLNonNull(GraphQLString) },
+        age: { type: new GraphQLNonNull(GraphQLInt) },
+        companyId: { type: GraphQLString }
+      },
+      resolve(parentValue, { firstName, age }) {
+          return axios.post(`http://localhost:3000/users`, {
+            firstName, age
+          })
+            .then(resp => resp.data);
+      }
+    }
+  }
+});
+```
+
+We're defining `addUser`. We expect `firstName` and `age` to be required and then we post the new values to the API.
+
+```graphql
+mutation {
+    addUser(firstName: "Stephen", age: 26) {
+        id
+        firstName
+        age
+    }
+}
+```
+
+In GraphQL it's expected to require a return value.
+
+
+Deleting
+
+```javascript
+const mutation = new GraphQLObjectType({
+  name: "Mutation",
+  fields: {
+    addUser: {
+      // ...
+    },
+    deleteUser: {
+        type: UserType,
+        args: {
+            id: { type: new GraphQLNonNull(GraphQLString) }
+        },
+        resolve(parentValue, args) {
+            return axios.delete(`http://localhost:3000/users/${args.id}`)
+                .then(resp => resp.data);
+        }
+    }
+  }
+});
+```
+
+```graphql
+mutation {
+  deleteUser(id: "23") {
+    id
+  }
+}
+```
+
+PUT vs PATCH
+
+* PUT - completely replace the existing record. (if you have empty info in the PUT, it will replace with null)
+* PATCH - updates the available information, without overriding empty values.
+
+schema.js
+```javascript
+const mutation = new GraphQLObjectType({
+  name: "Mutation",
+  fields: {
+    addUser: {...},
+    deleteUser: {...},
+    editUser: {
+      type: UserType,
+      args: {
+        id: { type: new GraphQLNonNull(GraphQLString) },
+        firstName: { type: GraphQLString },
+        age: { type: GraphQLInt },
+        companyId: { type: GraphQLString }
+      },
+      resolve(parentValue, args) {
+        return axios.patch(`http://localhost:3000/users/${args.id}`, args)
+            .then(resp => resp.data);
+      }
+    }
+  }
+});
+```
+
+```graphql
+mutation {
+  editUser(id: "sYOlPnf", firstName: "Steve") {
+    firstName
+    age
+  }
+}
+```
+
+## Client side GraphQL
