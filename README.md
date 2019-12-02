@@ -650,3 +650,29 @@ export default graphql(query)(SongList);
 ```
 
 This looks like Redux. The query result will be coming through props.
+
+Showing up the data in the component:
+
+```javascript
+// ...
+class SongList extends Component {
+  renderSongs() {
+    return this.props.data.songs.map(song => {
+      return (
+      <li key={song.id} className="collection-item">{song.title}</li>
+      )
+    });
+  }
+  render() {
+    if (this.props.data.loading) {
+      return (<div>Loading...</div>);
+    }
+    return (<ul className="collection">{this.renderSongs()}</ul>);
+  }
+}
+// ...
+```
+
+We're using GraphQL's `data.loading` property to make sure to only show the list in case it's done loading.
+
+We also started fetching id to use it as `key` for out list items.
