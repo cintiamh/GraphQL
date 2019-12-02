@@ -526,3 +526,127 @@ mutation {
 ```
 
 ## Client side GraphQL
+
+Javascript clients:
+* Lokka - very simple client. Basic queries, mutations, simple caching.
+* Apollo Client - good balance between features and complexity. Good to start with.
+* Relay - Amazing performance for mobile. Most complex. - bad mobile connection.
+
+We're using GraphQL Express, but there is Apollo Server, that we won't be using now.
+
+* GraphQL Express - we instantiate GraphQL* objects
+* Apollo Server - has types files (that looks like json), and resolvers file (functions using the types).
+
+https://github.com/StephenGrider/Lyrical-GraphQL
+
+Set up a free tier dev DB:
+https://cloud.mongodb.com/v2/5ddf152b014b7608bc579314#clusters
+
+Inside the lyrical project, run
+
+```
+npm run dev
+```
+
+Now you should be able to access http://localhost:4000/graphql
+
+```graphql
+mutation {
+    addSong(title: "Cold Night") {
+        id
+    }
+}
+```
+
+```graphql
+mutation {
+    addLyricToSong(songId: "5de1c7d63a5e93497b1c94be", content: "Oh my oh my its a cold night") {
+        id
+    }
+}
+```
+
+```graphql
+{
+    songs {
+        id
+        title
+        lyrics {
+            content
+        }
+    }
+}
+```
+
+Client side:
+
+* Apollo Privider - connects with Apollo Store
+    * Our React App
+* Apollo Store - Connects with GraphQL
+
+Basic Apollo setup in client:
+```javascript
+import React from 'react';
+import ReactDOM from 'react-dom';
+import ApolloClient from 'apollo-client';
+import { ApolloProvider } from 'react-apollo';
+
+const client = new ApolloClient({});
+
+const Root = () => {
+  return (
+    <ApolloProvider client={client}><div>Lyrical</div></ApolloProvider>
+  );
+};
+
+ReactDOM.render(
+  <Root />,
+  document.querySelector('#root')
+);
+```
+
+GraphQL + React Strategy
+1. Identify data required
+2. Write query in Graphiql and in component file
+3. Bond query + component
+4. Access data
+
+```graphql
+{
+    songs {
+        title
+    }
+}
+```
+
+graphql queries are not valid JS code. So we'll use graphql-tag library.
+
+```javascript
+//...
+import gql from 'graphql-tag';
+
+class SongList extends Component {...}
+
+const query = gql`
+  {
+    songs {
+      title
+    }
+  }
+`;
+// ...
+```
+
+Binding the graphql query with the component:
+```javascript
+// ...
+import { graphql } from 'react-apollo';
+
+class SongList extends Component {...}
+
+const query = gql`...`;
+
+export default graphql(query)(SongList);
+```
+
+This looks like Redux. The query result will be coming through props.
