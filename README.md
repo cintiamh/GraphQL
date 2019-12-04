@@ -676,3 +676,27 @@ class SongList extends Component {
 We're using GraphQL's `data.loading` property to make sure to only show the list in case it's done loading.
 
 We also started fetching id to use it as `key` for out list items.
+
+Setting up react router
+
+```javascript
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Router, Route, hashHistory, IndexRoute } from 'react-router';
+//...
+import App from './components/App';
+import SongList from './components/SongList';
+//...
+const Root = () => {
+  return (
+    <ApolloProvider client={client}>
+      <Router history={hashHistory}>
+        <Route path="/" component={App}>
+          <IndexRoute component={SongList} />
+        </Route>
+      </Router>
+    </ApolloProvider>
+  );
+};
+//...
+```
