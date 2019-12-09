@@ -700,3 +700,40 @@ const Root = () => {
 };
 //...
 ```
+
+Using onSubmit in order to add a new title.
+
+First we tested a mutation in GraphiQL:
+
+```graphql
+mutation {
+  addSong(title: "Dog Call") {
+    id
+    title
+  }
+}
+```
+
+Query variables
+
+GraphiQL has another section called query variables.
+
+```graphql
+mutation AddSong($title: String) {
+  addSong(title: $title) {
+    id
+    title
+  }
+}
+```
+
+We're now naming our mutation and declaring a variable for it.
+
+Think it like a function declaration.
+
+Query Variables
+```
+{
+  "title": "Sprite vs Coke"
+}
+```
