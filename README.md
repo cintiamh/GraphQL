@@ -737,3 +737,69 @@ Query Variables
   "title": "Sprite vs Coke"
 }
 ```
+
+Using Apollo to persist the changes into GraphQL:
+
+SongCreate
+```javascript
+import React, { Component } from 'react';
+import { graphql } from 'react-apollo';
+import gql from 'graphql-tag';
+
+class SongCreate extends Component {
+// ...
+    onSubmit(event) {
+        event.preventDefault();
+        // This is how we send the title param into GraphQL:
+        this.props.mutate({
+            variables: {
+                title: this.state.title
+            }
+        });
+    }
+// ...
+}
+
+const mutation = gql`
+mutation AddSong($title: String) {
+  addSong(title: $title) {
+    title
+  }
+}
+`;
+// Wrap our component using Apollo's graphql.
+export default graphql(mutation)(SongCreate);
+```
+
+Apollo tends to not re-fetch data that already fetched.
+So if you start the app in the list page, it fetches the latest list, and if we create a new song throught the flow, after creating and redirecting back to the list, Apollo will just assume it just loaded the list, so it doesn't need to fetch it again.
+We have to forcefully ask Apollo to fetch the whole list after adding a new one.
+
+In order to re-use some queries, create a new folder called queries.
+
+SongCreate.js
+```javascript
+//...
+import {Link, hashHistory} from 'react-router';
+// This is the fetch list query to get all songs.
+import query from '../queries/fetchSongs';
+
+class SongCreate extends Component {
+    //...
+    onSubmit(event) {
+        event.preventDefault();
+
+        this.props.mutate({
+            variables: {
+                title: this.state.title
+            },
+            // we need to re-run the fetch list query
+            refetchQueries: [{ query: query }]
+        })
+        .then(() => hashHistory.push('/'))
+        .catch(e => console.error(e));
+    }
+  //...
+}
+//...
+```
