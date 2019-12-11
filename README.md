@@ -803,3 +803,55 @@ class SongCreate extends Component {
 }
 //...
 ```
+
+Deleting a song
+
+The mutation will look like this:
+```graphql
+mutation DeleteSong($id: ID) {
+  deleteSong(id: $id) {
+    id
+  }
+}
+```
+
+Using the delete:
+```javascript
+//...
+
+class SongList extends Component {
+  onSongDelete(id) {
+    this.props.mutate({ variables: { id }})
+      // we can refresh the current component query after deleting.
+      .then(() => this.props.data.refetch());
+  }
+
+  renderSongs() {
+    // destructed the song to make it cleaner
+    return this.props.data.songs.map(({id, title}) => {
+      return (
+        <li key={id} className="collection-item">
+          {title}
+          <i className="material-icons" onClick={() => this.onSongDelete(id)}>
+            delete
+          </i>
+        </li>
+      )
+    });
+  }
+//...
+}
+
+const mutation = gql`
+mutation DeleteSong($id: ID) {
+  deleteSong(id: $id) {
+    id
+  }
+}
+`;
+
+// needs to nest a little bit in order to use query and delete mutation
+export default graphql(mutation)(
+  graphql(query)(SongList)
+);
+```
