@@ -855,3 +855,55 @@ export default graphql(mutation)(
   graphql(query)(SongList)
 );
 ```
+
+### Fetching individual records
+
+```graphql
+query SongQuery($id: ID!) {
+  song(id: $id) {
+    id
+    title
+  }
+}
+
+# query variable
+{
+  "id": "5dee6f624bbca9a9749ccd2a"
+}
+```
+
+Create in queries/fetchSong.js file:
+```javascript
+import gql from "graphql-tag";
+
+export default gql`
+  query SongQuery($id: ID!) {
+    song(id: $id) {
+      id
+      title
+    }
+  }
+`;
+```
+
+We can use props in order to pass info as params for our query:
+```javascript
+import React, { Component } from 'react';
+import { graphql } from 'react-apollo';
+import fetchSong from '../queries/fetchSong';
+
+class SongDetail extends Component {
+    render() {
+        return(
+            <div>
+                <h3>Song Detail</h3>
+            </div>
+        )
+    }
+}
+
+export default graphql(fetchSong, {
+    options: (props) => { return { variables: { id: props.params.id}}}
+})(SongDetail);
+```
+
