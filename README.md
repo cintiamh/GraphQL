@@ -907,3 +907,34 @@ export default graphql(fetchSong, {
 })(SongDetail);
 ```
 
+Add lyric to song
+
+```graphql
+mutation AddLyricToSong($content: String, $songId: ID) {
+  addLyricToSong(content: $content, songId: $songId) {
+    id
+    lyrics {
+      content
+    }
+  }
+}
+
+{
+  "songId": "5dee6f624bbca9a9749ccd2a",
+  "content": "It was a long night"
+}
+```
+
+Refreshing data with changes.
+
+We need to let Apollo know to identify changes using id:
+
+client/index.js
+```javascript
+const client = new ApolloClient({
+  // use the id to identify the object
+  dataIdFromObject: o => o.id
+});
+```
+
+only fetches without using caching in case changes happens to objects that have id.
