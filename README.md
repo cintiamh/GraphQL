@@ -938,3 +938,19 @@ const client = new ApolloClient({
 ```
 
 only fetches without using caching in case changes happens to objects that have id.
+
+Update the mutation for createLyric to include the id, so apollo can identify updates by ids.
+
+```graphql
+mutation AddLyricToSong($content: String, $songId: ID) {
+  addLyricToSong(content: $content, songId: $songId) {
+    id
+    lyrics {
+        id
+        content
+    }
+  }
+}
+```
+
+More information: https://www.apollographql.com/docs/react/v2.5/advanced/caching/
