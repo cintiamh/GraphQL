@@ -954,3 +954,23 @@ mutation AddLyricToSong($content: String, $songId: ID) {
 ```
 
 More information: https://www.apollographql.com/docs/react/v2.5/advanced/caching/
+
+### Optimistic Response
+
+You can guess what's the return value from the server so we don't have a lagged UI update.
+
+```graphql
+onLike(id, likes) {
+        this.props.mutate({
+            variables: { id },
+            optimisticResponse: {
+                __typename: 'Mutation',
+                likeLyric: {
+                    id,
+                    __typename: "LyricType",
+                    likes: likes + 1,
+                }
+            }
+        });
+    }
+```
