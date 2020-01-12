@@ -974,3 +974,83 @@ onLike(id, likes) {
         });
     }
 ```
+
+# Authentication system
+
+https://github.com/StephenGrider/auth-graphql-starter/blob/master/server/server.js
+
+Inside server/models/user.js we have a very detailed instruction of how user is going to looks like in MongoDB.
+
+server/services/auth.js - related to auth code. GraphQL & Passport wasn't meant to work together, so this file has a lot of adjutments to make it work.
+
+Decoupled approach to use Passport with GraphQL:
+
+Passport will do the authentication and then we request the GraphQL user data after authenticate.
+
+Coupled approach - GraphQL will take care of the mutation, and will redirect to Passport to do authentication.
+
+* Decoupled approach: separates the app to have a part that doesn't work with GraphQL
+* Coupled approach: consistency of using GraphQL everywhere. But Passport wasn't made to work with GraphQL.
+
+## Setting up Mongo:
+
+https://cloud.mongodb.com/v2/5ddf152b014b7608bc579314#clusters
+
+Types and Mutations:
+
+* Types:
+  * User
+* Mutations:
+  * Signup
+  * Login
+  * Logout
+
+### Create new user schema
+
+In /schema/types/user_type.js
+```js
+const graphql = require('graphql');
+const { GraphQLObjectType, GraphQLString} = graphql;
+
+const UserType = new GraphQLObjectType({
+    name: 'UserType',
+    fields: {
+        email: { type: GraphQLString}
+    }
+});
+
+module.exports = UserType;
+```
+
+User has in DB email and password fields, but in any moment there is NO REASON to expose password within the app. So we don't need to map it into GraphQL. (Only Passport needs it to do authentication)
+
+We want to avoid adding any logic into the GraphQL (mutation) code. We'll have helper methods for all the logic involved.
+
+server/schema/mutations.js
+```js
+const graphql = require('graphql');
+const {
+    GraphQLObjectType,
+    GraphQLString
+} = graphql;
+const UserType = require('./types/user_type');
+const AuthService = require('../services/auth');
+
+const mutation = new GraphQLObjectType({
+    name: 'Mutation',
+    fields: {
+        signup: {
+            type: UserType,
+            args: {
+                email: { type: GraphQLString },
+                password: { type: GraphQLString }
+            },
+            resolve(parentValue, { email, password }, req) {
+                return AuthService.signup({ email, password, req });
+            }
+        }
+    }
+});
+
+module.exports = mutation;
+```
