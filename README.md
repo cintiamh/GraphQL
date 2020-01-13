@@ -1054,3 +1054,14 @@ const mutation = new GraphQLObjectType({
 
 module.exports = mutation;
 ```
+
+Signup mutation:
+```graphql
+mutation {
+  signup(email: "test@test.com", password: "password") {
+    email
+  }
+}
+```
+
+This should not only create a new user, but also automatically give access to the application (cookie with access).
